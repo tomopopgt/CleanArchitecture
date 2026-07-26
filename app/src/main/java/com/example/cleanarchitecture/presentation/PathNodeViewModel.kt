@@ -6,7 +6,7 @@ import com.example.cleanarchitecture.data.algorithm.DijkstraPathEngine
 import com.example.cleanarchitecture.domain.model.GraphEdge
 import com.example.cleanarchitecture.domain.model.GraphNode
 import com.example.cleanarchitecture.domain.model.PathResult
-import com.example.cleanarchitecture.domain.repository.PathFinderRepository
+import com.example.cleanarchitecture.domain.usecase.GetShortestPathUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +21,8 @@ sealed interface PathUiState {
 }
 
 class PathNodeViewModel(
-    private val repository: PathFinderRepository = DijkstraPathEngine()
+    // UseCaseを注入（初期値にDijkstraPathEngineを設定）
+    private val getShortestPathUseCase: GetShortestPathUseCase = GetShortestPathUseCase(DijkstraPathEngine())
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<PathUiState>(PathUiState.Idle)
@@ -51,7 +52,7 @@ class PathNodeViewModel(
         viewModelScope.launch {
             _uiState.value = PathUiState.Calculating
 
-            val result = repository.findShortestPath(
+            val result = getShortestPathUseCase(
                 nodes = warehouseNodes,
                 edges = warehouseEdges,
                 startNode = start,
