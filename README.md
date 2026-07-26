@@ -1,3 +1,5 @@
+![Android CI](https://github.com/tomopopgt/CleanArchitecture/actions/workflows/android-ci.yml/badge.svg)
+
 # 🚚 PathNode Pro - Clean Architecture & Dijkstra Path Engine
 
 Android (Pure Kotlin / Jetpack Compose) で構築された、**Clean Architecture** に基づく最短経路探索（ダイクストラ法）アプリケーションです。
