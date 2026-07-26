@@ -20,7 +20,7 @@ graph TD
 
     subgraph Domain["Domain Layer"]
         UC["GetShortestPathUseCase"]
-        Repo["PathFinderRepository (Interface)"]
+        Repo["PathFinderRepository"]
         Model["GraphNode / GraphEdge / PathResult"]
     end
 
