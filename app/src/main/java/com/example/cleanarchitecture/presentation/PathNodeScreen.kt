@@ -1,6 +1,5 @@
 package com.example.cleanarchitecture.presentation
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,17 +13,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cleanarchitecture.domain.model.GraphNode
 import com.example.cleanarchitecture.presentation.components.WarehouseMapCanvas
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PathNodeScreen(
-    // 💡 remember を使用して ViewModel を初期化（追加依存関係なしで確実に動作します）
     viewModel: PathNodeViewModel = remember { PathNodeViewModel() }
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var startNode by remember { mutableStateOf(viewModel.warehouseNodes[0]) } // A
-    var targetNode by remember { mutableStateOf(viewModel.warehouseNodes[5]) } // F
+    var startNode by remember { mutableStateOf(viewModel.warehouseNodes.firstOrNull()) }
+    var targetNode by remember { mutableStateOf(viewModel.warehouseNodes.lastOrNull()) }
+
+    var startExpanded by remember { mutableStateOf(false) }
+    var targetExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -33,6 +36,7 @@ fun PathNodeScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        // ヘッダーカード
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -44,18 +48,102 @@ fun PathNodeScreen(
             }
         }
 
+        // ノード選択 ＆ 探索実行エリア
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // スタート地点 選択ボックス
+                    ExposedDropdownMenuBox(
+                        expanded = startExpanded,
+                        onExpandedChange = { startExpanded = !startExpanded },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = startNode?.label ?: "選択",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("出発地", color = Color(0xFF38BDF8)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = startExpanded) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color(0xFF38BDF8),
+                                unfocusedBorderColor = Color(0xFF475569)
+                            ),
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = startExpanded,
+                            onDismissRequest = { startExpanded = false }
+                        ) {
+                            viewModel.warehouseNodes.forEach { node ->
+                                DropdownMenuItem(
+                                    text = { Text(node.label) },
+                                    onClick = {
+                                        startNode = node
+                                        startExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // 目的地 選択ボックス
+                    ExposedDropdownMenuBox(
+                        expanded = targetExpanded,
+                        onExpandedChange = { targetExpanded = !targetExpanded },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = targetNode?.label ?: "選択",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("目的地", color = Color(0xFFF43F5E)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = targetExpanded) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color(0xFFF43F5E),
+                                unfocusedBorderColor = Color(0xFF475569)
+                            ),
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = targetExpanded,
+                            onDismissRequest = { targetExpanded = false }
+                        ) {
+                            viewModel.warehouseNodes.forEach { node ->
+                                DropdownMenuItem(
+                                    text = { Text(node.label) },
+                                    onClick = {
+                                        targetNode = node
+                                        targetExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Button(
-                    onClick = { viewModel.calculateRoute(startNode, targetNode) },
+                    onClick = {
+                        val start = startNode
+                        val target = targetNode
+                        if (start != null && target != null) {
+                            viewModel.calculateRoute(start, target)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
                     enabled = uiState !is PathUiState.Calculating
                 ) {
-                    Text("⚡ 経路を探索 (A ➔ F)", fontWeight = FontWeight.Bold)
+                    Text("⚡ 最短経路を探索", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -75,19 +163,29 @@ fun PathNodeScreen(
             )
         }
 
-        // 結果テキスト表示
-        if (uiState is PathUiState.Success) {
-            val result = (uiState as PathUiState.Success).result
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF065F46))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("✅ 最短経路 探索完了", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text("総移動距離: ${result.totalDistanceMeters} m", color = Color(0xFFA7F3D0), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text("ルート: " + result.pathNodes.joinToString(" ➔ ") { it.id }, color = Color.White, fontSize = 12.sp)
+        // 結果表示エリア
+        when (val state = uiState) {
+            is PathUiState.Success -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF065F46))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("✅ 最短経路 探索完了", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("総移動距離: ${state.result.totalDistanceMeters} m", color = Color(0xFFA7F3D0), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("ルート: " + state.result.pathNodes.joinToString(" ➔ ") { it.label }, color = Color.White, fontSize = 12.sp)
+                    }
                 }
             }
+            is PathUiState.Error -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF991B1B))
+                ) {
+                    Text(state.message, color = Color.White, modifier = Modifier.padding(16.dp))
+                }
+            }
+            else -> {}
         }
     }
 }
