@@ -32,5 +32,5 @@ graph TD
     VM --> Canvas
     VM --> UC
     UC --> Repo
-    Engine ..|> Repo
+    Engine -.-> Repo
     UC --> Model
