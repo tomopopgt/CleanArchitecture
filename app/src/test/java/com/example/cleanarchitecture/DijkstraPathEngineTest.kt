@@ -13,7 +13,7 @@ class DijkstraPathEngineTest {
     private val engine = DijkstraPathEngine()
 
     @Test
-    fun `findShortestPath - 正常系: 接続されたグラフで正確な最短経路を計算できること`() = runBlocking {
+    fun `findShortestPath - 正常系 - 接続されたグラフで正確な最短経路を計算できること`() = runBlocking {
         // Given
         val nodeA = GraphNode("A", "Node A", 0f, 0f)
         val nodeB = GraphNode("B", "Node B", 0f, 0f)
@@ -37,7 +37,7 @@ class DijkstraPathEngineTest {
     }
 
     @Test
-    fun `findShortestPath - 境界値: スタートとターゲットが同一ノードの場合、距離0を返すこと`() = runBlocking {
+    fun `findShortestPath - 境界値 - スタートとターゲットが同一ノードの場合、距離0を返すこと`() = runBlocking {
         // Given
         val nodeA = GraphNode("A", "Node A", 0f, 0f)
         val nodes = listOf(nodeA)
@@ -54,7 +54,7 @@ class DijkstraPathEngineTest {
     }
 
     @Test
-    fun `findShortestPath - 異常系: 経路が存在しない独立したノードへの探索は失敗すること`() = runBlocking {
+    fun `findShortestPath - 異常系 - 経路が存在しない独立したノードへの探索は失敗すること`() = runBlocking {
         // Given (A-B は繋がっているが、X は独立)
         val nodeA = GraphNode("A", "Node A", 0f, 0f)
         val nodeB = GraphNode("B", "Node B", 0f, 0f)
