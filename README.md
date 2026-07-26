@@ -12,22 +12,25 @@ Android (Pure Kotlin / Jetpack Compose) で構築された、**Clean Architectur
 
 ```mermaid
 graph TD
-    subgraph Presentation Layer
-        UI[PathNodeScreen / Jetpack Compose]
-        VM[PathNodeViewModel]
-        Canvas[WarehouseMapCanvas]
+    subgraph Presentation["Presentation Layer"]
+        UI["PathNodeScreen / Jetpack Compose"]
+        VM["PathNodeViewModel"]
+        Canvas["WarehouseMapCanvas"]
     end
 
-    subgraph Domain Layer
-        RepoSpec[PathFinderRepository (Interface)]
-        Models[GraphNode / GraphEdge / PathResult]
+    subgraph Domain["Domain Layer"]
+        UC["GetShortestPathUseCase"]
+        Repo["PathFinderRepository (Interface)"]
+        Model["GraphNode / GraphEdge / PathResult"]
     end
 
-    subgraph Data Layer
-        Engine[DijkstraPathEngine]
+    subgraph Data["Data Layer"]
+        Engine["DijkstraPathEngine"]
     end
 
     UI --> VM
-    VM --> RepoSpec
-    Engine ..|> RepoSpec
-    Engine --> Models
+    VM --> Canvas
+    VM --> UC
+    UC --> Repo
+    Engine ..|> Repo
+    UC --> Model
