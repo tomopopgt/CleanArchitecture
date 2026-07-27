@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.example.cleanarchitecture.domain.model.SearchHistoryItem
+import com.example.cleanarchitecture.domain.repository.PathFinderRepository
+import com.example.cleanarchitecture.domain.usecase.GetSearchHistoryUseCase
+import com.example.cleanarchitecture.domain.usecase.AddSearchHistoryUseCase
+import java.util.UUID
 
 sealed interface PathUiState {
     object Idle : PathUiState
@@ -21,9 +26,16 @@ sealed interface PathUiState {
 }
 
 class PathNodeViewModel(
-    // UseCaseを注入（初期値にDijkstraPathEngineを設定）
-    private val getShortestPathUseCase: GetShortestPathUseCase = GetShortestPathUseCase(DijkstraPathEngine())
+    // 1. リポジトリの本体（DijkstraPathEngine）を1つ生成
+    private val repository: PathFinderRepository = DijkstraPathEngine(),
+
+    // 2. そのリポジトリを各ユースケースに渡して初期化
+    private val getShortestPathUseCase: GetShortestPathUseCase = GetShortestPathUseCase(repository),
+    private val getSearchHistoryUseCase: GetSearchHistoryUseCase = GetSearchHistoryUseCase(repository),
+    private val addSearchHistoryUseCase: AddSearchHistoryUseCase = AddSearchHistoryUseCase(repository)
 ) : ViewModel() {
+
+    val searchHistory: StateFlow<List<SearchHistoryItem>> = getSearchHistoryUseCase()
 
     private val _uiState = MutableStateFlow<PathUiState>(PathUiState.Idle)
     val uiState: StateFlow<PathUiState> = _uiState.asStateFlow()
@@ -59,10 +71,21 @@ class PathNodeViewModel(
                 targetNode = target
             )
 
-            delay(300)
+            delay(timeMillis = 300)
 
             _uiState.value = result.fold(
-                onSuccess = { PathUiState.Success(it) },
+                onSuccess = { pathResult ->
+                    // 検索が成功したら、履歴を作って保存する
+                    val historyItem = SearchHistoryItem(
+                        id = UUID.randomUUID().toString(),
+                        startNodeName = start.id,
+                        targetNodeName = target.id,
+                        totalDistance = pathResult.totalDistanceMeters
+                    )
+                    addSearchHistoryUseCase(historyItem)
+
+                    PathUiState.Success(result = pathResult)
+                },
                 onFailure = { PathUiState.Error(it.message ?: "経路探索エラー") }
             )
         }

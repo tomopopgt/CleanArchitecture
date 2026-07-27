@@ -3,12 +3,29 @@ package com.example.cleanarchitecture.data.algorithm
 import com.example.cleanarchitecture.domain.model.GraphEdge
 import com.example.cleanarchitecture.domain.model.GraphNode
 import com.example.cleanarchitecture.domain.model.PathResult
+import com.example.cleanarchitecture.domain.model.SearchHistoryItem
 import com.example.cleanarchitecture.domain.repository.PathFinderRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.util.PriorityQueue
 
 class DijkstraPathEngine : PathFinderRepository {
+
+    // 👇 1. メモリ上で履歴リストを保持する StateFlow を追加
+    private val _searchHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
+
+    // 👇 2. 履歴取得の実装を追加
+    override fun getSearchHistory(): StateFlow<List<SearchHistoryItem>> {
+        return _searchHistory.asStateFlow()
+    }
+
+    // 👇 3. 履歴保存の実装を追加
+    override fun addSearchHistory(item: SearchHistoryItem) {
+        _searchHistory.value = listOf(item) + _searchHistory.value
+    }
 
     override suspend fun findShortestPath(
         nodes: List<GraphNode>,

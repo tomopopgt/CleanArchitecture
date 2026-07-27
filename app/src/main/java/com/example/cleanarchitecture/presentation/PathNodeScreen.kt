@@ -15,6 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cleanarchitecture.domain.model.GraphNode
 import com.example.cleanarchitecture.presentation.components.WarehouseMapCanvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +28,7 @@ fun PathNodeScreen(
     viewModel: PathNodeViewModel = remember { PathNodeViewModel() }
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchHistory by viewModel.searchHistory.collectAsState()
 
     var startNode by remember { mutableStateOf(viewModel.warehouseNodes.firstOrNull()) }
     var targetNode by remember { mutableStateOf(viewModel.warehouseNodes.lastOrNull()) }
@@ -186,6 +193,52 @@ fun PathNodeScreen(
                 }
             }
             else -> {}
+        }
+
+        if (searchHistory.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "📜 最近の検索履歴",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 180.dp)
+            ) {
+                items(searchHistory) { item ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "${item.startNodeName} ➔ ${item.targetNodeName}",
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                            Text(
+                                text = "${item.totalDistance} m",
+                                color = Color(0xFFA7F3D0),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
