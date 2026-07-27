@@ -34,3 +34,12 @@ graph TD
     UC --> Repo
     Engine -.-> Repo
     UC --> Model
+```
+    
+---
+
+## 📅 Roadmap
+- [x] Clean Architectureの導入
+- [x] ダイクストラ法のアルゴリズム実装
+- [x] CI/CD環境（GitHub Actions）の構築
+- [ ] 新しいUIコンポーネントの追加
