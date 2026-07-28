@@ -221,20 +221,28 @@ fun PathNodeScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically // 👈 縦中央揃え
                         ) {
-                            Text(
-                                text = "${item.startNodeName} ➔ ${item.targetNodeName}",
-                                color = Color.White,
-                                fontSize = 12.sp
-                            )
-                            Text(
-                                text = "${item.totalDistance} m",
-                                color = Color(0xFFA7F3D0),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Column {
+                                Text(
+                                    text = "${item.startNodeName} ➔ ${item.targetNodeName}",
+                                    color = Color.White,
+                                    fontSize = 12.sp
+                                )
+                                Text(
+                                    text = "${item.totalDistance} m",
+                                    color = Color(0xFFA7F3D0),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            // 👇 🗑️ 削除ボタンを追加！
+                            IconButton(onClick = { viewModel.deleteSearchHistory(item.id) }) {
+                                Text(text = "🗑️", fontSize = 16.sp)
+                            }
                         }
                     }
                 }

@@ -22,4 +22,6 @@ interface PathFinderRepository {
      * 新しい検索結果を履歴に保存する
      */
     fun addSearchHistory(item: SearchHistoryItem)
+
+    fun deleteSearchHistory(historyId: String)
 }

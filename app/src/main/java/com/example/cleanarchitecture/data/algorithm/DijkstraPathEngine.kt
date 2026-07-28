@@ -27,6 +27,11 @@ class DijkstraPathEngine : PathFinderRepository {
         _searchHistory.value = listOf(item) + _searchHistory.value
     }
 
+    // 4. 履歴削除の実装
+    override fun deleteSearchHistory(historyId: String) {
+        _searchHistory.value = _searchHistory.value.filter { it.id != historyId }
+    }
+
     override suspend fun findShortestPath(
         nodes: List<GraphNode>,
         edges: List<GraphEdge>,

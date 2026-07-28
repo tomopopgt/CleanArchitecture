@@ -17,6 +17,7 @@ import com.example.cleanarchitecture.domain.repository.PathFinderRepository
 import com.example.cleanarchitecture.domain.usecase.GetSearchHistoryUseCase
 import com.example.cleanarchitecture.domain.usecase.AddSearchHistoryUseCase
 import java.util.UUID
+import com.example.cleanarchitecture.domain.usecase.DeleteSearchHistoryUseCase
 
 sealed interface PathUiState {
     object Idle : PathUiState
@@ -32,7 +33,9 @@ class PathNodeViewModel(
     // 2. そのリポジトリを各ユースケースに渡して初期化
     private val getShortestPathUseCase: GetShortestPathUseCase = GetShortestPathUseCase(repository),
     private val getSearchHistoryUseCase: GetSearchHistoryUseCase = GetSearchHistoryUseCase(repository),
-    private val addSearchHistoryUseCase: AddSearchHistoryUseCase = AddSearchHistoryUseCase(repository)
+    private val addSearchHistoryUseCase: AddSearchHistoryUseCase = AddSearchHistoryUseCase(repository),
+    private val deleteSearchHistoryUseCase: DeleteSearchHistoryUseCase = DeleteSearchHistoryUseCase(repository)
+
 ) : ViewModel() {
 
     val searchHistory: StateFlow<List<SearchHistoryItem>> = getSearchHistoryUseCase()
@@ -89,5 +92,9 @@ class PathNodeViewModel(
                 onFailure = { PathUiState.Error(it.message ?: "経路探索エラー") }
             )
         }
+    }
+    // 履歴削除関数
+    fun deleteSearchHistory(id: String) {
+        deleteSearchHistoryUseCase(id)
     }
 }
